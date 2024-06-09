@@ -1,0 +1,40 @@
+.movie {
+  width: 450px;
+  height: 280px;
+  display: grid;
+  grid-template-columns: 183px 1fr;
+  grid-template-rows: 95px 135px 1fr;
+  column-gap: 20px;
+  grid-template-areas:
+    'poster header'
+    'poster description'
+    'poster rate';
+}
+
+.movie__img-wrapper {
+  background: #000;
+  grid-area: poster;
+}
+
+.movie__header {
+  background: grey;
+  grid-area: header;
+}
+
+.movie__description-container {
+  background: greenyellow;
+  grid-area: description;
+  max-height: 100%;
+  overflow-y: hidden;
+}
+
+.movie__rate {
+  grid-area: rate;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ant-rate {
+  font-size: 15px;
+}
