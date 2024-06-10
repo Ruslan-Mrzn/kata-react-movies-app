@@ -8,3 +8,16 @@ export const getDescriptionText = (element) => {
     getDescriptionText(element)
   }
 }
+
+export const debounce = (fn, debounceTime) => {
+  let calledId
+  return async function callFn() {
+    const args = [...arguments]
+    if (calledId) {
+      clearTimeout(calledId)
+    }
+    calledId = setTimeout(() => {
+      fn.apply(this, args)
+    }, debounceTime)
+  }
+}

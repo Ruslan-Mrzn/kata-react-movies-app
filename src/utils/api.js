@@ -25,8 +25,15 @@ class Api {
     }).then(this._checkResponse)
   }
 
-  getSearchedMovies() {
-    return fetch(`${this._baseUrl}search/movie?query=return`, {
+  getSearchedMovies(query) {
+    return fetch(`${this._baseUrl}search/movie?query=${query}`, {
+      method: 'GET',
+      headers: this._headers,
+    }).then(this._checkResponse)
+  }
+
+  getGenres() {
+    return fetch(`${this._baseUrl}genre/movie/list`, {
       method: 'GET',
       headers: this._headers,
     }).then(this._checkResponse)
