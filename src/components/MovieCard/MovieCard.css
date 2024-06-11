@@ -30,6 +30,8 @@
   line-height: 1.4;
   font-weight: inherit;
   padding-right: 45px;
+  max-height: 150px;
+  overflow-x: hidden;
 }
 
 .movie__released {

@@ -42,6 +42,7 @@ ul {
 
 html {
   background-color: var(--background-color-base);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -54,4 +55,25 @@ body {
   margin: 0 auto;
   background-color: var(--btn-primary-color);
   color: var(--header-color);
+}
+
+header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 100;
+}
+
+.ant-pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.ant-pagination-item-active * {
+  color: var(--btn-primary-color) !important;
 }

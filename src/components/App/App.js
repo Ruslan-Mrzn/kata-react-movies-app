@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Pagination, ConfigProvider } from 'antd'
 
 import './App.css'
 import api from '../../utils/api'
@@ -14,13 +15,19 @@ export default class App extends Component {
       searchedMovies: null,
       ratedMovies: null,
       genresContext: null,
+      totalResults: null,
+      searchQuery: '',
+      paginatorIsFetching: false,
     }
     this.guestId = JSON.stringify(localStorage.getItem('guestId'))
     this.searchMovies = debounce(async (evt) => {
+      this.setState({ searchQuery: evt.target.value })
       if (evt.target.value !== '') {
         try {
-          const { results } = await api.getSearchedMovies(evt.target.value)
-          this.setState({ searchedMovies: results }, () => console.log(this.state.searchedMovies))
+          const { results, total_results = 1 } = await api.getSearchedMovies(evt.target.value)
+          this.setState({ searchedMovies: results, totalResults: total_results === 0 ? null : total_results }, () =>
+            console.log(this.state.searchedMovies)
+          )
         } catch (err) {
           console.error(err)
         }
@@ -41,6 +48,12 @@ export default class App extends Component {
           description={overview}
         />
       ))
+    this.getMoviesFromPage = async (pageNumber) => {
+      window.scroll(0, 0)
+      const { results } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
+
+      this.setState({ searchedMovies: results })
+    }
   }
 
   async componentDidMount() {
@@ -72,11 +85,36 @@ export default class App extends Component {
     console.log('App mounted!')
   }
   render() {
-    // const { fetchResult } = this.state
+    const { genresContext, searchedMovies, totalResults } = this.state
     return (
-      <GenresProvider value={this.state.genresContext}>
-        <SearchMovie searchMovies={this.searchMovies} />
-        <MoviesList>{this.renderMovies(this.state.searchedMovies)}</MoviesList>
+      <GenresProvider value={genresContext}>
+        <header>
+          <SearchMovie searchMovies={this.searchMovies} />
+        </header>
+        <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
+
+        {totalResults && (
+          <ConfigProvider
+            theme={{
+              components: {
+                Pagination: {
+                  itemActiveBg: '#1677ff',
+                },
+              },
+            }}
+          >
+            <Pagination
+              onChange={(page) => {
+                this.getMoviesFromPage(page)
+              }}
+              defaultCurrent={1}
+              total={totalResults}
+              disabled={this.state.paginatorIsFetching}
+              pageSize={20}
+              showSizeChanger={false}
+            />
+          </ConfigProvider>
+        )}
       </GenresProvider>
     )
   }

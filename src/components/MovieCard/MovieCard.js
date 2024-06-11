@@ -7,6 +7,7 @@ import { getDescriptionText } from '../../utils/utils'
 import { GenresConsumer } from '../../contexts/genresContext'
 
 import './MovieCard.css'
+import noImage from './no-image.jpg'
 export default class MovieCard extends Component {
   constructor() {
     super()
@@ -22,7 +23,7 @@ export default class MovieCard extends Component {
           <li className="movies-item">
             <div className="movie">
               <div className="movie__img-wrapper">
-                <img className="movie__img" src={`https://image.tmdb.org/t/p/original${poster}`} />
+                <img className="movie__img" src={poster ? `https://image.tmdb.org/t/p/original${poster}` : noImage} />
               </div>
               <div className="movie__header">
                 <h2 className="movie__title">{title}</h2>

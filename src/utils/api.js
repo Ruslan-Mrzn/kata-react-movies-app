@@ -32,6 +32,13 @@ class Api {
     }).then(this._checkResponse)
   }
 
+  getPaginationMovies(query, pageNumber) {
+    return fetch(`${this._baseUrl}search/movie?query=${query}&page=${pageNumber}`, {
+      method: 'GET',
+      headers: this._headers,
+    }).then(this._checkResponse)
+  }
+
   getGenres() {
     return fetch(`${this._baseUrl}genre/movie/list`, {
       method: 'GET',
@@ -54,7 +61,7 @@ const api = new Api({
     accept: 'application/json',
     'Content-Type': 'application/json;charset=utf-8',
     Authorization:
-      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NDkyY2QwMjFmZjBlZGFlNTBmN2JiNzUyYzI4MTY4ZCIsInN1YiI6IjY2NWRjMjU4YTQyMTNiOWQ5MTc5OTNlNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.thEvtOl9L9eLVvISRwUMSSazkdCz_zioll_vA05HhK8',
+      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5NTc2ZDlkYmVjYWI4ZWNkNmJiZTc3YzU3MzhkNTY0NSIsInN1YiI6IjY2NWRjMjU4YTQyMTNiOWQ5MTc5OTNlNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.GrH91cFc6WJ6hhez_VGG0O3tkxV5wJES1BkBh1zM9ak',
   },
 })
 
