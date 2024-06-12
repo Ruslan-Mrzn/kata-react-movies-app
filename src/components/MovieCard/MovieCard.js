@@ -16,7 +16,17 @@ export default class MovieCard extends Component {
     getDescriptionText(this.descriptionRef)
   }
   render() {
-    const { movieId, guestId, description, movieGenres, title, releaseDate = null, poster, rating } = this.props
+    const {
+      movieId,
+      selfRating,
+      guestId,
+      description,
+      movieGenres,
+      title,
+      releaseDate = null,
+      poster,
+      rating,
+    } = this.props
     return (
       <GenresConsumer>
         {(genres) => (
@@ -45,10 +55,10 @@ export default class MovieCard extends Component {
               <div className="movie__rate">
                 <Rate
                   count={10}
-                  defaultValue={0}
+                  defaultValue={selfRating}
                   allowHalf={true}
-                  onChange={(value) => {
-                    api.addRating(movieId, guestId, value)
+                  onChange={async (value) => {
+                    await api.addRating(movieId, guestId, value)
                   }}
                 />
               </div>

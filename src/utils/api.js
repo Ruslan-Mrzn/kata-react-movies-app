@@ -8,7 +8,7 @@ class Api {
     if (res.ok) {
       return res.json()
     }
-    return Promise.reject(`Ошибка: ${res.status}`)
+    return Promise.reject(res)
   }
 
   getGuestId() {
@@ -19,7 +19,14 @@ class Api {
   }
 
   getRatedMovies(guestId) {
-    return fetch(`${this._baseUrl}guest_session/${guestId}/rated/movies`, {
+    return fetch(`${this._baseUrl}guest_session/${guestId}/rated/movies?`, {
+      method: 'GET',
+      headers: this._headers,
+    }).then(this._checkResponse)
+  }
+
+  getRatedMoviesFromPage(guestId, pageNumber) {
+    return fetch(`${this._baseUrl}guest_session/${guestId}/rated/movies?page=${pageNumber}`, {
       method: 'GET',
       headers: this._headers,
     }).then(this._checkResponse)

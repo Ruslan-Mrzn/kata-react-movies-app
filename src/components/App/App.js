@@ -12,22 +12,29 @@ export default class App extends Component {
   constructor() {
     super()
     this.state = {
+      guestId: JSON.parse(localStorage.getItem('guestId')),
       searchedMovies: null,
       ratedMovies: null,
+      allRatedMovies: null,
       genresContext: null,
       totalResults: null,
+      totalRatedPages: null,
       searchQuery: '',
       paginatorIsFetching: false,
+      currentSearchingPage: null,
     }
-    this.guestId = JSON.stringify(localStorage.getItem('guestId'))
     this.searchMovies = debounce(async (evt) => {
-      this.setState({ searchQuery: evt.target.value })
+      this.setState({ searchQuery: evt.target.value, isSearchUpdating: true })
       if (evt.target.value !== '') {
         try {
-          const { results, total_results = 1 } = await api.getSearchedMovies(evt.target.value)
-          this.setState({ searchedMovies: results, totalResults: total_results === 0 ? null : total_results }, () =>
-            console.log(this.state.searchedMovies)
-          )
+          const { results, total_results, page } = await api.getSearchedMovies(evt.target.value)
+          this.setState({
+            searchedMovies: results,
+            totalResults: total_results === 0 ? null : total_results,
+            currentSearchingPage: page,
+          })
+          window.scroll(0, 0)
+          this.state.totalResults = null
         } catch (err) {
           console.error(err)
         }
@@ -35,50 +42,76 @@ export default class App extends Component {
     }, 1000)
     this.renderMovies = (array) =>
       array &&
-      array.map(({ genre_ids, id, title, overview, release_date, vote_average, poster_path }) => (
+      array.map(({ genre_ids, id, title, rating, overview, release_date, vote_average, poster_path }) => (
         <MovieCard
           key={id}
           movieId={id}
-          guestId={this.guestId}
+          guestId={this.state.guestId}
           movieGenres={genre_ids}
           title={title}
           releaseDate={release_date}
           rating={vote_average}
           poster={poster_path}
           description={overview}
+          setRatedMovies={this.setRatedMovies}
+          selfRating={rating ? rating : this.checkSelfRating(this.state.allRatedMovies, id)}
         />
       ))
     this.getMoviesFromPage = async (pageNumber) => {
       window.scroll(0, 0)
-      const { results } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
-
-      this.setState({ searchedMovies: results })
+      const { results, page } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
+      this.setState({ searchedMovies: results, currentSearchingPage: page })
     }
-  }
-
-  async componentDidMount() {
-    if (!this.guestId) {
+    this.setRatedMovies = async () => {
       try {
-        const { guest_session_id } = await api.getGuestId()
-        console.log(guest_session_id)
-        localStorage.setItem('guestId', JSON.stringify(guest_session_id))
-        this.guestId = guest_session_id
+        const { results, total_pages } = await api.getRatedMovies(this.state.guestId)
+        this.setState({ ratedMovies: results, totalRatedPages: total_pages, allRatedMovies: results }, () => {
+          if (this.state.totalRatedPages > 1) this.getAllRatedMovies(2)
+        })
       } catch (err) {
         console.error(err)
       }
     }
-    try {
-      const movies = await api.getRatedMovies(this.guestId)
-      this.setState({ ratedMovies: movies })
-      console.log(movies)
-    } catch (error) {
-      this.guestId = null
-      console.error(error)
+    this.getAllRatedMovies = async (pageNumber) => {
+      if (pageNumber <= this.state.totalRatedPages) {
+        const { results } = await api.getRatedMoviesFromPage(this.state.guestId, pageNumber)
+        this.setState(
+          ({ allRatedMovies }) => {
+            return { allRatedMovies: [...allRatedMovies, ...results] }
+          },
+          () => {
+            console.log(this.state.allRatedMovies)
+            this.getAllRatedMovies(pageNumber + 1)
+          }
+        )
+      }
     }
+    this.checkSelfRating = (ratedMovies, id) => {
+      const selfRating = ratedMovies && ratedMovies.find((ratedMovie) => ratedMovie.id === id)?.rating
+      return selfRating ? selfRating : 0
+    }
+  }
+
+  async componentDidMount() {
+    console.log('mounted id: ', this.state.guestId)
+    console.log('localStorage id: ', JSON.parse(localStorage.getItem('guestId')))
+
+    if (this.state.guestId === null) {
+      console.log('need renew guest id...')
+      try {
+        const { guest_session_id } = await api.getGuestId()
+        localStorage.setItem('guestId', JSON.stringify(guest_session_id))
+        this.setState({ guestId: JSON.parse(localStorage.getItem('guestId')) }, () =>
+          console.log('new guest id: ', this.state.guestId)
+        )
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    await this.setRatedMovies()
     try {
       const { genres } = await api.getGenres()
       this.setState({ genresContext: genres }, () => console.log(this.state.genresContext))
-      console.log(genres)
     } catch (error) {
       console.error(error)
     }
@@ -93,28 +126,28 @@ export default class App extends Component {
         </header>
         <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
 
-        {totalResults && (
-          <ConfigProvider
-            theme={{
-              components: {
-                Pagination: {
-                  itemActiveBg: '#1677ff',
-                },
+        <ConfigProvider
+          theme={{
+            components: {
+              Pagination: {
+                itemActiveBg: '#1677ff',
               },
-            }}
-          >
+            },
+          }}
+        >
+          {totalResults && (
             <Pagination
+              current={this.state.currentSearchingPage}
               onChange={(page) => {
                 this.getMoviesFromPage(page)
               }}
               defaultCurrent={1}
               total={totalResults}
-              disabled={this.state.paginatorIsFetching}
               pageSize={20}
               showSizeChanger={false}
             />
-          </ConfigProvider>
-        )}
+          )}
+        </ConfigProvider>
       </GenresProvider>
     )
   }
