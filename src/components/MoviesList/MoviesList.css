@@ -4,4 +4,6 @@
   grid-auto-rows: 280px;
   column-gap: 35px;
   row-gap: 35px;
+  padding: 35px 0;
+  height: 100%;
 }

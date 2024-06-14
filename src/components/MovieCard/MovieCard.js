@@ -24,6 +24,7 @@ export default class MovieCard extends Component {
       movieGenres,
       title,
       releaseDate = null,
+      refetchRatedMovies,
       poster,
       rating,
     } = this.props
@@ -59,6 +60,7 @@ export default class MovieCard extends Component {
                   allowHalf={true}
                   onChange={async (value) => {
                     await api.addRating(movieId, guestId, value)
+                    await refetchRatedMovies()
                   }}
                 />
               </div>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Pagination, ConfigProvider } from 'antd'
+import { Pagination, ConfigProvider, Tabs } from 'antd'
 
 import './App.css'
 import api from '../../utils/api'
@@ -19,9 +19,11 @@ export default class App extends Component {
       genresContext: null,
       totalResults: null,
       totalRatedPages: null,
+      totalRatedResults: null,
       searchQuery: '',
       paginatorIsFetching: false,
       currentSearchingPage: null,
+      currentRatedPage: null,
     }
     this.searchMovies = debounce(async (evt) => {
       this.setState({ searchQuery: evt.target.value, isSearchUpdating: true })
@@ -53,6 +55,7 @@ export default class App extends Component {
           rating={vote_average}
           poster={poster_path}
           description={overview}
+          refetchRatedMovies={this.setRatedMovies}
           setRatedMovies={this.setRatedMovies}
           selfRating={rating ? rating : this.checkSelfRating(this.state.allRatedMovies, id)}
         />
@@ -62,12 +65,26 @@ export default class App extends Component {
       const { results, page } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
       this.setState({ searchedMovies: results, currentSearchingPage: page })
     }
+    this.getRatedMoviesFromPage = async (pageNumber) => {
+      window.scroll(0, 0)
+      const { results, page } = await api.getRatedMoviesFromPage(this.state.guestId, pageNumber)
+      this.setState({ ratedMovies: results, currentRatedPage: page })
+    }
     this.setRatedMovies = async () => {
       try {
-        const { results, total_pages } = await api.getRatedMovies(this.state.guestId)
-        this.setState({ ratedMovies: results, totalRatedPages: total_pages, allRatedMovies: results }, () => {
-          if (this.state.totalRatedPages > 1) this.getAllRatedMovies(2)
-        })
+        const { results, total_pages, total_results, page } = await api.getRatedMovies(this.state.guestId)
+        this.setState(
+          {
+            ratedMovies: results,
+            totalRatedPages: total_pages,
+            allRatedMovies: results,
+            totalRatedResults: total_results,
+            currentRatedPage: page,
+          },
+          () => {
+            if (this.state.totalRatedPages > 1) this.getAllRatedMovies(2)
+          }
+        )
       } catch (err) {
         console.error(err)
       }
@@ -118,37 +135,86 @@ export default class App extends Component {
     console.log('App mounted!')
   }
   render() {
-    const { genresContext, searchedMovies, totalResults } = this.state
+    const { genresContext, searchedMovies, totalResults, ratedMovies, currentRatedPage, totalRatedResults } = this.state
     return (
-      <GenresProvider value={genresContext}>
-        <header>
-          <SearchMovie searchMovies={this.searchMovies} />
-        </header>
-        <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
-
-        <ConfigProvider
-          theme={{
-            components: {
-              Pagination: {
-                itemActiveBg: '#1677ff',
-              },
-            },
-          }}
-        >
-          {totalResults && (
-            <Pagination
-              current={this.state.currentSearchingPage}
-              onChange={(page) => {
-                this.getMoviesFromPage(page)
-              }}
-              defaultCurrent={1}
-              total={totalResults}
-              pageSize={20}
-              showSizeChanger={false}
-            />
-          )}
-        </ConfigProvider>
-      </GenresProvider>
+      <Tabs
+        defaultActiveKey="search"
+        centered={true}
+        items={[
+          {
+            key: 'search',
+            label: 'Search',
+            children: (
+              <GenresProvider value={genresContext}>
+                <main>
+                  <SearchMovie searchMovies={this.searchMovies} />
+                  <div className="movies-wrapper">
+                    <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
+                  </div>
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Pagination: {
+                          itemActiveBg: '#1677ff',
+                        },
+                      },
+                    }}
+                  >
+                    {totalResults && (
+                      <Pagination
+                        current={this.state.currentSearchingPage}
+                        onChange={(page) => {
+                          this.getMoviesFromPage(page)
+                        }}
+                        defaultCurrent={1}
+                        total={totalResults}
+                        pageSize={20}
+                        showSizeChanger={false}
+                      />
+                    )}
+                  </ConfigProvider>
+                </main>
+              </GenresProvider>
+            ),
+          },
+          {
+            key: 'rated',
+            label: 'Rated',
+            children: (
+              <GenresProvider value={genresContext}>
+                <main>
+                  <div className="movies-wrapper">
+                    <MoviesList>{this.renderMovies(ratedMovies)}</MoviesList>
+                  </div>
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Pagination: {
+                          itemActiveBg: '#1677ff',
+                        },
+                      },
+                    }}
+                  >
+                    {totalRatedResults && (
+                      <Pagination
+                        current={currentRatedPage}
+                        onChange={(page) => {
+                          this.getRatedMoviesFromPage(page)
+                        }}
+                        defaultCurrent={1}
+                        total={totalRatedResults}
+                        pageSize={20}
+                        showSizeChanger={false}
+                      />
+                    )}
+                  </ConfigProvider>
+                </main>
+              </GenresProvider>
+            ),
+          },
+        ]}
+        onChange={() => {}}
+      />
     )
   }
 }
