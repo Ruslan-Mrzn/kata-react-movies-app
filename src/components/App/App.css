@@ -13,6 +13,10 @@
   --success-color: #52c41a;
   --processing-color: #1890ff;
   --error-color: #f5222d;
+  --rating-low: #e90000;
+  --rating-medium: #e97e00;
+  --rating-good: #e9d100;
+  --rating-excellent: #66e900;
   --highlight-color: #f5222d;
   --warning-color: #faad14;
   --normal-color: #d9d9d9;
@@ -75,6 +79,9 @@ main {
 }
 
 .movies-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex-grow: 2;
 }
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Pagination, ConfigProvider, Tabs } from 'antd'
+import { Pagination, ConfigProvider, Tabs, Spin, Alert } from 'antd'
 
 import './App.css'
 import api from '../../utils/api'
@@ -24,11 +24,16 @@ export default class App extends Component {
       paginatorIsFetching: false,
       currentSearchingPage: null,
       currentRatedPage: null,
+      isFetching: false,
+      isError: false,
+      errorMessage: '',
+      defaultErrorMessage: 'An error occurred while searching.\nPlease try reloading the page.',
     }
     this.searchMovies = debounce(async (evt) => {
       this.setState({ searchQuery: evt.target.value, isSearchUpdating: true })
       if (evt.target.value !== '') {
         try {
+          this.setState({ isFetching: true })
           const { results, total_results, page } = await api.getSearchedMovies(evt.target.value)
           this.setState({
             searchedMovies: results,
@@ -39,6 +44,9 @@ export default class App extends Component {
           this.state.totalResults = null
         } catch (err) {
           console.error(err)
+          this.setState({ isError: true, errorMessage: err.message })
+        } finally {
+          this.setState({ isFetching: false })
         }
       }
     }, 1000)
@@ -61,14 +69,30 @@ export default class App extends Component {
         />
       ))
     this.getMoviesFromPage = async (pageNumber) => {
+      this.setState({ isFetching: true })
       window.scroll(0, 0)
-      const { results, page } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
-      this.setState({ searchedMovies: results, currentSearchingPage: page })
+      try {
+        const { results, page } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
+        this.setState({ searchedMovies: results, currentSearchingPage: page })
+      } catch (err) {
+        console.error(err)
+        this.setState({ isError: true, errorMessage: err.message })
+      } finally {
+        this.setState({ isFetching: false })
+      }
     }
     this.getRatedMoviesFromPage = async (pageNumber) => {
+      this.setState({ isFetching: true })
       window.scroll(0, 0)
-      const { results, page } = await api.getRatedMoviesFromPage(this.state.guestId, pageNumber)
-      this.setState({ ratedMovies: results, currentRatedPage: page })
+      try {
+        const { results, page } = await api.getRatedMoviesFromPage(this.state.guestId, pageNumber)
+        this.setState({ ratedMovies: results, currentRatedPage: page })
+      } catch (err) {
+        console.error(err)
+        this.setState({ isError: true, errorMessage: err.message })
+      } finally {
+        this.setState({ isFetching: false })
+      }
     }
     this.setRatedMovies = async () => {
       try {
@@ -87,6 +111,7 @@ export default class App extends Component {
         )
       } catch (err) {
         console.error(err)
+        this.setState({ isError: true, errorMessage: err.message })
       }
     }
     this.getAllRatedMovies = async (pageNumber) => {
@@ -123,19 +148,32 @@ export default class App extends Component {
         )
       } catch (err) {
         console.error(err)
+        this.setState({ isError: true, errorMessage: err.message })
       }
     }
     await this.setRatedMovies()
     try {
       const { genres } = await api.getGenres()
       this.setState({ genresContext: genres }, () => console.log(this.state.genresContext))
-    } catch (error) {
-      console.error(error)
+    } catch (err) {
+      console.error(err)
+      this.setState({ isError: true, errorMessage: err.message })
     }
     console.log('App mounted!')
   }
   render() {
-    const { genresContext, searchedMovies, totalResults, ratedMovies, currentRatedPage, totalRatedResults } = this.state
+    const {
+      genresContext,
+      isFetching,
+      searchedMovies,
+      totalResults,
+      ratedMovies,
+      currentRatedPage,
+      totalRatedResults,
+      errorMessage,
+      defaultErrorMessage,
+      isError,
+    } = this.state
     return (
       <Tabs
         defaultActiveKey="search"
@@ -149,7 +187,13 @@ export default class App extends Component {
                 <main>
                   <SearchMovie searchMovies={this.searchMovies} />
                   <div className="movies-wrapper">
-                    <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
+                    {isFetching ? (
+                      <Spin size="large" />
+                    ) : isError ? (
+                      <Alert type="error" message={errorMessage ? errorMessage : defaultErrorMessage} />
+                    ) : (
+                      <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
+                    )}
                   </div>
                   <ConfigProvider
                     theme={{
@@ -184,7 +228,7 @@ export default class App extends Component {
               <GenresProvider value={genresContext}>
                 <main>
                   <div className="movies-wrapper">
-                    <MoviesList>{this.renderMovies(ratedMovies)}</MoviesList>
+                    {isFetching ? <Spin size="large" /> : <MoviesList>{this.renderMovies(ratedMovies)}</MoviesList>}
                   </div>
                   <ConfigProvider
                     theme={{

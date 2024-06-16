@@ -64,7 +64,11 @@ export default class MovieCard extends Component {
                   }}
                 />
               </div>
-              <span className="movie__rating">{rating.toFixed(1)}</span>
+              <span
+                className={`movie__rating movie__rating--value--${rating >= 7 ? 'excellent' : rating >= 5 ? 'good' : rating >= 3 ? 'medium' : 'low'}`}
+              >
+                {rating.toFixed(1)}
+              </span>
             </div>
           </li>
         )}

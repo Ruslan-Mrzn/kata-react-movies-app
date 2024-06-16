@@ -90,5 +90,20 @@
   justify-content: center;
   align-items: center;
   border-radius: 50px;
-  outline: 2px solid var(--warning-color);
+}
+
+.movie__rating--value--low {
+  outline: 2px solid var(--rating-low);
+}
+
+.movie__rating--value--medium {
+  outline: 2px solid var(--rating-medium);
+}
+
+.movie__rating--value--good {
+  outline: 2px solid var(--rating-good);
+}
+
+.movie__rating--value--excellent {
+  outline: 2px solid var(--rating-excellent);
 }
