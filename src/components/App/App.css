@@ -103,37 +103,37 @@ main {
   border-bottom: 1px solid var(--border-color-base);
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs-top > .ant-tabs-nav::before,
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs-bottom > .ant-tabs-nav::before,
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs-top > div > .ant-tabs-nav::before,
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs-bottom > div > .ant-tabs-nav::before {
+.ant-tabs-top > .ant-tabs-nav::before,
+.ant-tabs-bottom > .ant-tabs-nav::before,
+.ant-tabs-top > div > .ant-tabs-nav::before,
+.ant-tabs-bottom > div > .ant-tabs-nav::before {
   border-bottom: none;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs {
+.ant-tabs {
   flex-grow: 1;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-content-holder {
+.ant-tabs .ant-tabs-content-holder {
   flex-grow: 2;
   flex-shrink: 0;
   min-width: 0;
   min-height: 0;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-tab + .ant-tabs-tab {
+.ant-tabs .ant-tabs-tab + .ant-tabs-tab {
   margin: 0 0 0 16px;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-tab {
+.ant-tabs .ant-tabs-tab {
   padding: 12px 8px;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-content {
+.ant-tabs .ant-tabs-content {
   height: 100%;
 }
 
-:where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-tabpane {
+.ant-tabs .ant-tabs-tabpane {
   height: 100%;
 }
 
