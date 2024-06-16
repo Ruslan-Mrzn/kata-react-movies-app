@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { Rate } from 'antd'
 import { format } from 'date-fns'
 
-import api from '../../utils/api'
 import { getDescriptionText } from '../../utils/utils'
 import { GenresConsumer } from '../../contexts/genresContext'
 
@@ -24,7 +23,7 @@ export default class MovieCard extends Component {
       movieGenres,
       title,
       releaseDate = null,
-      refetchRatedMovies,
+      addRating,
       poster,
       rating,
     } = this.props
@@ -59,8 +58,7 @@ export default class MovieCard extends Component {
                   defaultValue={selfRating}
                   allowHalf={true}
                   onChange={async (value) => {
-                    await api.addRating(movieId, guestId, value)
-                    await refetchRatedMovies()
+                    await addRating(movieId, guestId, value)
                   }}
                 />
               </div>

@@ -28,6 +28,7 @@ export default class App extends Component {
       isError: false,
       errorMessage: '',
       defaultErrorMessage: 'An error occurred while searching.\nPlease try reloading the page.',
+      onRateTab: false,
     }
     this.searchMovies = debounce(async (evt) => {
       this.setState({ searchQuery: evt.target.value, isSearchUpdating: true })
@@ -39,12 +40,13 @@ export default class App extends Component {
             searchedMovies: results,
             totalResults: total_results === 0 ? null : total_results,
             currentSearchingPage: page,
+            isError: false,
           })
           window.scroll(0, 0)
           this.state.totalResults = null
         } catch (err) {
           console.error(err)
-          this.setState({ isError: true, errorMessage: err.message })
+          this.setState({ isError: true, errorMessage: err.status_message })
         } finally {
           this.setState({ isFetching: false })
         }
@@ -63,8 +65,7 @@ export default class App extends Component {
           rating={vote_average}
           poster={poster_path}
           description={overview}
-          refetchRatedMovies={this.setRatedMovies}
-          setRatedMovies={this.setRatedMovies}
+          addRating={this.rateMovie}
           selfRating={rating ? rating : this.checkSelfRating(this.state.allRatedMovies, id)}
         />
       ))
@@ -75,8 +76,9 @@ export default class App extends Component {
         const { results, page } = await api.getPaginationMovies(this.state.searchQuery, pageNumber)
         this.setState({ searchedMovies: results, currentSearchingPage: page })
       } catch (err) {
-        console.error(err)
-        this.setState({ isError: true, errorMessage: err.message })
+        const error = await err.json()
+        console.error(error)
+        this.setState({ isError: true, errorMessage: error.status_message })
       } finally {
         this.setState({ isFetching: false })
       }
@@ -88,8 +90,9 @@ export default class App extends Component {
         const { results, page } = await api.getRatedMoviesFromPage(this.state.guestId, pageNumber)
         this.setState({ ratedMovies: results, currentRatedPage: page })
       } catch (err) {
-        console.error(err)
-        this.setState({ isError: true, errorMessage: err.message })
+        const error = await err.json()
+        console.error(error)
+        this.setState({ isError: true, errorMessage: error.status_message })
       } finally {
         this.setState({ isFetching: false })
       }
@@ -110,8 +113,9 @@ export default class App extends Component {
           }
         )
       } catch (err) {
-        console.error(err)
-        this.setState({ isError: true, errorMessage: err.message })
+        const error = await err.json()
+        console.error(error)
+        if (error.status_code !== 34) this.setState({ isError: true, errorMessage: err.message })
       }
     }
     this.getAllRatedMovies = async (pageNumber) => {
@@ -128,6 +132,18 @@ export default class App extends Component {
         )
       }
     }
+    this.rateMovie = async (movieId, guestId, value) => {
+      try {
+        const { success } = await api.addRating(movieId, guestId, value)
+        if (success) {
+          setTimeout(async () => await this.setRatedMovies(), 1000)
+        }
+      } catch (err) {
+        const error = await err.json()
+        console.error(error)
+        this.setState({ isError: true, errorMessage: error.status_message })
+      }
+    }
     this.checkSelfRating = (ratedMovies, id) => {
       const selfRating = ratedMovies && ratedMovies.find((ratedMovie) => ratedMovie.id === id)?.rating
       return selfRating ? selfRating : 0
@@ -135,31 +151,26 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
-    console.log('mounted id: ', this.state.guestId)
-    console.log('localStorage id: ', JSON.parse(localStorage.getItem('guestId')))
-
     if (this.state.guestId === null) {
-      console.log('need renew guest id...')
       try {
         const { guest_session_id } = await api.getGuestId()
         localStorage.setItem('guestId', JSON.stringify(guest_session_id))
-        this.setState({ guestId: JSON.parse(localStorage.getItem('guestId')) }, () =>
-          console.log('new guest id: ', this.state.guestId)
-        )
+        this.setState({ guestId: JSON.parse(localStorage.getItem('guestId')) })
       } catch (err) {
-        console.error(err)
-        this.setState({ isError: true, errorMessage: err.message })
+        const error = await err.json()
+        console.error(error)
+        this.setState({ isError: true, errorMessage: error.status_message })
       }
     }
-    await this.setRatedMovies()
+    if (this.state.guestId !== null) await this.setRatedMovies()
     try {
       const { genres } = await api.getGenres()
-      this.setState({ genresContext: genres }, () => console.log(this.state.genresContext))
+      this.setState({ genresContext: genres })
     } catch (err) {
-      console.error(err)
-      this.setState({ isError: true, errorMessage: err.message })
+      const error = await err.json()
+      console.error(error)
+      this.setState({ isError: true, errorMessage: error.status_message })
     }
-    console.log('App mounted!')
   }
   render() {
     const {
@@ -173,6 +184,7 @@ export default class App extends Component {
       errorMessage,
       defaultErrorMessage,
       isError,
+      searchQuery,
     } = this.state
     return (
       <Tabs
@@ -191,8 +203,10 @@ export default class App extends Component {
                       <Spin size="large" />
                     ) : isError ? (
                       <Alert type="error" message={errorMessage ? errorMessage : defaultErrorMessage} />
-                    ) : (
+                    ) : totalResults ? (
                       <MoviesList>{this.renderMovies(searchedMovies)}</MoviesList>
+                    ) : (
+                      searchQuery && <Alert type="info" message="The search has not given any results" />
                     )}
                   </div>
                   <ConfigProvider
@@ -228,7 +242,15 @@ export default class App extends Component {
               <GenresProvider value={genresContext}>
                 <main>
                   <div className="movies-wrapper">
-                    {isFetching ? <Spin size="large" /> : <MoviesList>{this.renderMovies(ratedMovies)}</MoviesList>}
+                    {isFetching ? (
+                      <Spin size="large" />
+                    ) : isError ? (
+                      <Alert type="error" message={errorMessage ? errorMessage : defaultErrorMessage} />
+                    ) : totalRatedResults ? (
+                      <MoviesList>{this.renderMovies(ratedMovies)}</MoviesList>
+                    ) : (
+                      <Alert type="info" message="You haven't rated any movies yet" />
+                    )}
                   </div>
                   <ConfigProvider
                     theme={{

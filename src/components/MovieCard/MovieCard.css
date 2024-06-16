@@ -107,3 +107,35 @@
 .movie__rating--value--excellent {
   outline: 2px solid var(--rating-excellent);
 }
+
+@media (max-width: 499px) {
+  .movie {
+    width: 388px;
+    height: 245px;
+    grid-template-columns: 60px 1fr;
+    column-gap: 13px;
+    grid-template-areas:
+      'poster header'
+      'description description'
+      '. rate';
+    padding: 6px 10px 0 10px;
+  }
+
+  .movie__img-wrapper {
+    max-height: 91px;
+  }
+
+  .movie__description {
+    padding-right: 0;
+  }
+
+  .movie__rate {
+    margin-left: auto;
+    justify-content: end;
+  }
+
+  .movie__rating {
+    top: 5px;
+    right: 8px;
+  }
+}

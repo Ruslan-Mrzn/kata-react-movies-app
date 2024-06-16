@@ -55,6 +55,7 @@ body {
   line-height: 1.83;
   font-weight: 400;
   max-width: 1010px;
+  min-width: 400px;
   padding: 0 36px;
   margin: 0 auto;
   background-color: var(--btn-primary-color);
@@ -134,4 +135,10 @@ main {
 
 :where(.css-dev-only-do-not-override-3rel02).ant-tabs .ant-tabs-tabpane {
   height: 100%;
+}
+
+@media (max-width: 1024px) {
+  body {
+    padding: 0 16px;
+  }
 }

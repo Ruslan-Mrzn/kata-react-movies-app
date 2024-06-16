@@ -19,7 +19,7 @@ class Api {
   }
 
   getRatedMovies(guestId) {
-    return fetch(`${this._baseUrl}guest_session/${guestId}/rated/movies?`, {
+    return fetch(`${this._baseUrl}guest_session/${guestId}/rated/movies`, {
       method: 'GET',
       headers: this._headers,
     }).then(this._checkResponse)
@@ -68,7 +68,7 @@ const api = new Api({
     accept: 'application/json',
     'Content-Type': 'application/json;charset=utf-8',
     Authorization:
-      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5NTc2ZDlkYmVjYWI4ZWNkNmJiZTc3YzU3MzhkNTY0NSIsInN1YiI6IjY2NWRjMjU4YTQyMTNiOWQ5MTc5OTNlNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.GrH91cFc6WJ6hhez_VGG0O3tkxV5wJES1BkBh1zM9ak',
+      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNTM3MDYxOGY2MjMyYmE2ODA1NTcyZjQyMTMwYzY0NSIsInN1YiI6IjY2NWRjMjU4YTQyMTNiOWQ5MTc5OTNlNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oLITDeOYv6q1oNcvknTAATCq8wzRxVUslwHqZtnzyYs',
   },
 })
 

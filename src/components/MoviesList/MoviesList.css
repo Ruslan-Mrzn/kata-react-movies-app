@@ -7,3 +7,21 @@
   padding: 35px 0;
   height: 100%;
 }
+
+@media (max-width: 1024px) {
+  .movies-list {
+    grid-template-columns: 1fr;
+    justify-content: center;
+    grid-auto-rows: 280px;
+    column-gap: none;
+    row-gap: 35px;
+  }
+}
+
+@media (max-width: 499px) {
+  .movies-list {
+    justify-content: center;
+    grid-auto-rows: 245px;
+    row-gap: 20px;
+  }
+}
